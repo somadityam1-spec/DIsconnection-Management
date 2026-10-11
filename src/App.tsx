@@ -20,6 +20,7 @@ import {
   FileDown,
   Upload,
   Zap,
+  ArrowLeft,
 } from 'lucide-react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
@@ -45,6 +46,7 @@ function MainApp() {
     visibleConsumers,
     consumers,
     activeView,
+    setActiveView,
     language,
     searchQuery,
     setSearchQuery,
@@ -134,6 +136,20 @@ function MainApp() {
         {activeView === 'meeting_report' && <MeetingReportView />}
         {activeView === 'sheet_sync' && <GoogleSheetSyncModal />}
         {activeView === 'history_logs' && <HistoryLogsView />}
+        {activeView === 'analytics' && (
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4">
+            <div className="mb-3">
+              <button
+                onClick={() => setActiveView('consumers')}
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Consumer Hub</span>
+              </button>
+            </div>
+            <StatsBreakdown forceOpen={true} />
+          </div>
+        )}
 
         {/* Default View: Consumers List & Survey Hub (Screenshots 1, 2, 5) */}
         {activeView === 'consumers' && (

@@ -129,7 +129,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [consumers, setConsumers] = useState<Consumer[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_CONSUMERS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const ids = new Set(parsed.map((c: Consumer) => c.id));
+          const missing = initialConsumers.filter((c) => !ids.has(c.id));
+          if (missing.length > 0) {
+            return [...missing, ...parsed];
+          }
+          return parsed;
+        }
+      }
     } catch (e) {
       console.error(e);
     }
