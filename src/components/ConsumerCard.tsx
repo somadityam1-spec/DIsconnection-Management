@@ -28,8 +28,36 @@ export const ConsumerCard: React.FC<ConsumerCardProps> = ({
   onUpdate,
   onReissue,
 }) => {
-  const { language, currentUser, userGeo, nearbyRadiusActive, reissueConsumer } = useApp();
+  const { language, currentUser, userGeo, nearbyRadiusActive, reissueConsumer, minOsdFilter } = useApp();
   const t = translations[language];
+
+  // OSD Marker styling for high dues (e.g. 3K+, 5K+, 10K+)
+  const getOsdMarker = (osd: number) => {
+    if (osd >= 10000) {
+      return {
+        label: '10K+ High Value',
+        shortTag: '≥ 10K',
+        bg: 'bg-purple-100 text-purple-800 border-purple-300',
+      };
+    }
+    if (osd >= 5000) {
+      return {
+        label: '5K+ Defaulter',
+        shortTag: '≥ 5K',
+        bg: 'bg-rose-100 text-rose-800 border-rose-300',
+      };
+    }
+    if (osd >= 3000) {
+      return {
+        label: '3K+ Due',
+        shortTag: '≥ 3K',
+        bg: 'bg-amber-100 text-amber-800 border-amber-300',
+      };
+    }
+    return null;
+  };
+
+  const osdMarker = getOsdMarker(consumer.osd);
 
   // Status badge styling
   const getStatusBadge = (status: Consumer['status']) => {
@@ -80,6 +108,14 @@ export const ConsumerCard: React.FC<ConsumerCardProps> = ({
             <span className="bg-slate-100 text-slate-600 text-[11px] font-mono font-semibold px-2 py-0.5 rounded-sm">
               {consumer.mru}
             </span>
+            {osdMarker && (
+              <span
+                className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md border ${osdMarker.bg} tracking-tight shadow-xs`}
+                title={`OSD: ${formatINR(consumer.osd)} (${osdMarker.label})`}
+              >
+                {osdMarker.shortTag}
+              </span>
+            )}
             {distanceStr && (
               <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Navigation className="w-2.5 h-2.5" />
@@ -132,8 +168,13 @@ export const ConsumerCard: React.FC<ConsumerCardProps> = ({
         <div className="grid grid-cols-2 gap-3 py-2.5 border-y border-slate-100 mb-3 text-xs">
           {/* Outstanding Due */}
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-              {t.outstanding}
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5 flex items-center justify-between">
+              <span>{t.outstanding}</span>
+              {osdMarker && (
+                <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${osdMarker.bg}`}>
+                  {osdMarker.label}
+                </span>
+              )}
             </div>
             <div className="text-base sm:text-lg font-black text-rose-600 font-mono tabular-nums leading-tight">
               {formatINR(consumer.osd)}

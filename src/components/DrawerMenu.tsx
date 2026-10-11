@@ -27,12 +27,14 @@ interface DrawerMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenExportPdf?: () => void;
+  onOpenBulkImport?: () => void;
 }
 
 export const DrawerMenu: React.FC<DrawerMenuProps> = ({
   isOpen,
   onClose,
   onOpenExportPdf,
+  onOpenBulkImport,
 }) => {
   const {
     currentUser,
@@ -254,6 +256,21 @@ export const DrawerMenu: React.FC<DrawerMenuProps> = ({
                   >
                     <Edit3 className="w-4 h-4 text-blue-600 shrink-0" />
                     <span>Edit DC List</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onOpenBulkImport) {
+                        onOpenBulkImport();
+                      } else {
+                        setActiveView('admin_consumers');
+                      }
+                      onClose();
+                    }}
+                    className="w-full px-4 py-2 text-left flex items-center gap-3 text-slate-700 hover:bg-slate-50 hover:text-blue-600 cursor-pointer"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-semibold text-emerald-800">Bulk Disconnection Import</span>
                   </button>
 
                   <button

@@ -31,6 +31,7 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
     selectedAgencyFilter,
     selectedClassFilter,
     selectedStatusFilter,
+    minOsdFilter,
     searchQuery,
   } = useApp();
 
@@ -228,7 +229,10 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
 
               {/* Active Filter Criteria Summary */}
               <div className="mt-1 text-[10px] text-slate-500 flex items-center justify-between font-mono bg-slate-50 px-2.5 py-1 rounded">
-                <span>FILTER CRITERIA: Agency: {selectedAgencyFilter} | Class: {selectedClassFilter} | Status: {selectedStatusFilter}</span>
+                <span>
+                  FILTER CRITERIA: Agency: {selectedAgencyFilter} | Class: {selectedClassFilter} | Status: {selectedStatusFilter}
+                  {minOsdFilter > 0 ? ` | Min OSD: ≥ ₹${minOsdFilter.toLocaleString('en-IN')}` : ''}
+                </span>
                 {searchQuery && <span>Search: "{searchQuery}"</span>}
               </div>
             </div>
@@ -295,7 +299,14 @@ export const ExportPdfModal: React.FC<ExportPdfModalProps> = ({
                         {c.mobileNo}
                       </td>
                       <td className="py-2 px-2 border border-slate-300 text-right font-bold text-slate-900 tabular-nums">
-                        {formatINR(c.osd)}
+                        <div>{formatINR(c.osd)}</div>
+                        {c.osd >= 10000 ? (
+                          <span className="text-[8px] font-black text-purple-700 block">≥ 10K High</span>
+                        ) : c.osd >= 5000 ? (
+                          <span className="text-[8px] font-bold text-rose-700 block">≥ 5K</span>
+                        ) : c.osd >= 3000 ? (
+                          <span className="text-[8px] font-bold text-amber-700 block">≥ 3K</span>
+                        ) : null}
                       </td>
                       <td className="py-2 px-1.5 border border-slate-300 text-center uppercase font-bold text-[9px]">
                         <span

@@ -29,6 +29,7 @@ interface AppContextType {
   selectedAgencyFilter: string;
   selectedClassFilter: string;
   selectedStatusFilter: string;
+  minOsdFilter: number;
   toastMessage: string | null;
   theme: ThemeMode;
 
@@ -42,6 +43,7 @@ interface AppContextType {
   setSelectedAgencyFilter: (agency: string) => void;
   setSelectedClassFilter: (cls: string) => void;
   setSelectedStatusFilter: (status: string) => void;
+  setMinOsdFilter: (val: number) => void;
   toggleNearbyLocator: () => void;
   showToast: (msg: string) => void;
 
@@ -62,6 +64,9 @@ interface AppContextType {
   addConsumer: (consumer: Consumer) => void;
   editConsumer: (consumer: Consumer) => void;
   deleteConsumer: (consumerId: string) => void;
+  importBulkConsumers: (newConsumers: Consumer[], mode?: 'upsert' | 'replace' | 'append') => number;
+  bulkUpdateConsumers: (consumerIds: string[], updates: Partial<Consumer>) => number;
+  clearAllConsumers?: () => void;
 
   // Admin User Management
   addUser: (user: User) => boolean;
@@ -159,6 +164,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedAgencyFilter, setSelectedAgencyFilter] = useState('All');
   const [selectedClassFilter, setSelectedClassFilter] = useState('All');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
+  const [minOsdFilter, setMinOsdFilter] = useState<number>(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 7. Geolocation & Nearby locator
@@ -343,6 +349,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return false;
       }
 
+      // 4b. Minimum OSD filter (like 3K, 5K or custom value marker)
+      if (minOsdFilter > 0 && (Number(c.osd) || 0) < minOsdFilter) {
+        return false;
+      }
+
       // 5. Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -475,6 +486,81 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Deleted consumer ${consumerId}`);
   };
 
+  const importBulkConsumers = (newConsumers: Consumer[], mode: 'upsert' | 'replace' | 'append' = 'upsert'): number => {
+    if (!newConsumers || newConsumers.length === 0) return 0;
+
+    if (mode === 'replace') {
+      setConsumers(newConsumers);
+      showToast(`Replaced master list with ${newConsumers.length} imported consumers`);
+      return newConsumers.length;
+    }
+
+    if (mode === 'append') {
+      setConsumers((prev) => [...newConsumers, ...prev]);
+      showToast(`Added ${newConsumers.length} consumers to list`);
+      return newConsumers.length;
+    }
+
+    // Default: 'upsert' - merge by consumer ID, preserving existing status/evidence if already updated
+    let updatedCount = 0;
+    let addedCount = 0;
+    setConsumers((prev) => {
+      const map = new Map<string, Consumer>();
+      prev.forEach((c) => map.set(c.id, c));
+
+      newConsumers.forEach((incoming) => {
+        const existing = map.get(incoming.id);
+        if (existing) {
+          // Merge: retain user-collected survey status/evidence if present unless incoming explicitly specifies different
+          map.set(incoming.id, {
+            ...existing,
+            ...incoming,
+            // Keep completed actions if incoming is unvisited
+            status: existing.status !== 'connected' && incoming.status === 'connected' ? existing.status : incoming.status,
+            evidencePhoto: existing.evidencePhoto || incoming.evidencePhoto,
+            amountRealized: existing.amountRealized ?? incoming.amountRealized,
+            remarks: incoming.remarks || existing.remarks,
+          });
+          updatedCount++;
+        } else {
+          map.set(incoming.id, incoming);
+          addedCount++;
+        }
+      });
+
+      return Array.from(map.values());
+    });
+
+    showToast(`Bulk Import complete: ${addedCount} added, ${updatedCount} updated`);
+    return addedCount + updatedCount;
+  };
+
+  const bulkUpdateConsumers = (consumerIds: string[], updates: Partial<Consumer>): number => {
+    const idSet = new Set(consumerIds);
+    let count = 0;
+    setConsumers((prev) =>
+      prev.map((c) => {
+        if (idSet.has(c.id)) {
+          count++;
+          return {
+            ...c,
+            ...updates,
+            lastActionDate: new Date().toISOString().split('T')[0],
+            lastActionBy: currentUser ? currentUser.id : 'admin',
+          };
+        }
+        return c;
+      })
+    );
+    showToast(`Bulk edited ${count} consumers`);
+    return count;
+  };
+
+  const clearAllConsumers = () => {
+    setConsumers([]);
+    showToast('Cleared all consumers from list');
+  };
+
   // Admin User Management
   const addUser = (newUser: User): boolean => {
     if (users.some((u) => u.id.toLowerCase() === newUser.id.toLowerCase())) {
@@ -572,6 +658,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedAgencyFilter,
         selectedClassFilter,
         selectedStatusFilter,
+        minOsdFilter,
         toastMessage,
         theme,
         setTheme,
@@ -584,6 +671,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedAgencyFilter,
         setSelectedClassFilter,
         setSelectedStatusFilter,
+        setMinOsdFilter,
         toggleNearbyLocator,
         showToast,
 
@@ -592,6 +680,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addConsumer,
         editConsumer,
         deleteConsumer,
+        importBulkConsumers,
+        bulkUpdateConsumers,
+        clearAllConsumers,
 
         addUser,
         updateUser,

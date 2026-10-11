@@ -11,11 +11,13 @@ import {
   FileSpreadsheet,
   Download,
   Upload,
+  Zap,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { translations, formatINR } from '../utils/translations';
 import { Consumer } from '../types';
 import { exportConsumersToCSV, exportConsumersToExcel, parseCSVToConsumers } from '../utils/sheetSync';
+import { BulkImportModal } from './BulkImportModal';
 
 export const AdminConsumerEditor: React.FC = () => {
   const {
@@ -34,8 +36,10 @@ export const AdminConsumerEditor: React.FC = () => {
 
   const [search, setSearch] = useState('');
   const [filterAgency, setFilterAgency] = useState('All');
+  const [filterMinOsd, setFilterMinOsd] = useState<number>(0);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   // New Consumer Form
   const [form, setForm] = useState<Partial<Consumer>>({
@@ -128,6 +132,9 @@ export const AdminConsumerEditor: React.FC = () => {
     if (filterAgency !== 'All' && c.agency.toUpperCase() !== filterAgency.toUpperCase()) {
       return false;
     }
+    if (filterMinOsd > 0 && (Number(c.osd) || 0) < filterMinOsd) {
+      return false;
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -165,7 +172,7 @@ export const AdminConsumerEditor: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => exportConsumersToExcel(consumers)}
             className="px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
@@ -175,11 +182,19 @@ export const AdminConsumerEditor: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setIsBulkImportOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Bulk Import / Edit</span>
+          </button>
+
+          <button
             onClick={() => setIsCreating(!isCreating)}
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Add New Consumer</span>
+            <span>Add Single Consumer</span>
           </button>
         </div>
       </div>
@@ -411,7 +426,8 @@ export const AdminConsumerEditor: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Agency Filter */}
           <select
             value={filterAgency}
             onChange={(e) => setFilterAgency(e.target.value)}
@@ -423,6 +439,53 @@ export const AdminConsumerEditor: React.FC = () => {
               </option>
             ))}
           </select>
+
+          {/* Min OSD Marker Dropdown */}
+          <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-xl px-2.5 py-1.5">
+            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
+            <select
+              value={[0, 3000, 5000, 10000, 25000, 50000].includes(filterMinOsd) ? filterMinOsd : 'custom'}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val !== 'custom') {
+                  setFilterMinOsd(Number(val));
+                }
+              }}
+              className="text-xs sm:text-sm font-semibold text-slate-700 bg-transparent focus:outline-none"
+            >
+              <option value={0}>All Dues (₹0+)</option>
+              <option value={3000}>≥ ₹3K (3,000+)</option>
+              <option value={5000}>≥ ₹5K (5,000+)</option>
+              <option value={10000}>≥ ₹10K (10,000+)</option>
+              <option value={25000}>≥ ₹25K (25,000+)</option>
+              <option value={50000}>≥ ₹50K (50,000+)</option>
+              <option value="custom">Custom Any Marker</option>
+            </select>
+
+            {/* Custom input */}
+            <div className="relative w-24">
+              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
+              <input
+                type="number"
+                min="0"
+                step="500"
+                placeholder="Min OSD"
+                value={filterMinOsd > 0 ? filterMinOsd : ''}
+                onChange={(e) => setFilterMinOsd(Math.max(0, Number(e.target.value) || 0))}
+                className="w-full pl-4 pr-1 py-1 text-xs border border-slate-200 rounded font-mono font-bold"
+              />
+            </div>
+
+            {filterMinOsd > 0 && (
+              <button
+                onClick={() => setFilterMinOsd(0)}
+                className="text-slate-400 hover:text-slate-700 text-xs font-bold px-1"
+                title="Reset Min OSD"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -484,7 +547,22 @@ export const AdminConsumerEditor: React.FC = () => {
                           className="border border-slate-300 rounded px-1 py-0.5 text-xs w-20 text-right"
                         />
                       ) : (
-                        formatINR(c.osd)
+                        <div>
+                          <div>{formatINR(c.osd)}</div>
+                          {c.osd >= 10000 ? (
+                            <span className="inline-block text-[9px] font-black uppercase px-1 py-0.2 rounded bg-purple-100 text-purple-800 border border-purple-200">
+                              ≥ 10K
+                            </span>
+                          ) : c.osd >= 5000 ? (
+                            <span className="inline-block text-[9px] font-bold uppercase px-1 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
+                              ≥ 5K
+                            </span>
+                          ) : c.osd >= 3000 ? (
+                            <span className="inline-block text-[9px] font-bold uppercase px-1 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                              ≥ 3K
+                            </span>
+                          ) : null}
+                        </div>
                       )}
                     </td>
 
@@ -597,6 +675,12 @@ export const AdminConsumerEditor: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Bulk Disconnection Import & Editor Modal */}
+      <BulkImportModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+      />
     </div>
   );
 };

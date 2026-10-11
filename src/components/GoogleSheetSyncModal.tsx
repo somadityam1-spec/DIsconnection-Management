@@ -27,6 +27,7 @@ export const GoogleSheetSyncModal: React.FC = () => {
     setActiveView,
     showToast,
     addConsumer,
+    importBulkConsumers,
   } = useApp();
 
   const t = translations[language];
@@ -57,8 +58,7 @@ export const GoogleSheetSyncModal: React.FC = () => {
       return;
     }
 
-    parsed.forEach((c) => addConsumer(c));
-    showToast(`Successfully imported ${parsed.length} consumers from CSV!`);
+    importBulkConsumers(parsed, 'upsert');
     setPastedCSV('');
   };
 

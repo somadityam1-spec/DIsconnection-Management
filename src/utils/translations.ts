@@ -97,6 +97,12 @@ export const translations = {
     syncSuccess: 'Synced successfully with Google Sheet',
     syncFailed: 'Sync failed. Please check the URL or connection.',
     watermarkSeal: 'HARISHCHANDRAPUR CCC - WBSEDCL EVIDENCE',
+    filterMinOsd: 'Min OSD Marker',
+    allOsd: 'All Dues',
+    above3k: '≥ 3K (₹3,000+)',
+    above5k: '≥ 5K (₹5,000+)',
+    above10k: '≥ 10K (₹10,000+)',
+    customOsdMarker: 'Custom Marker (₹)',
   },
   bn: {
     appTitle: 'হরিশ্চন্দ্রপুর সিসিসি',
@@ -194,6 +200,12 @@ export const translations = {
     syncSuccess: 'গুগল শিটের সাথে সফলভাবে সিঙ্ক হয়েছে',
     syncFailed: 'সিঙ্ক ব্যর্থ হয়েছে। অনুগ্রহ করে লিংক পরীক্ষা করুন।',
     watermarkSeal: 'হরিশ্চন্দ্রপুর সিসিসি - অফিশিয়াল প্রমাণপত্র',
+    filterMinOsd: 'নূন্যতম বকেয়া (OSD মার্কার)',
+    allOsd: 'সব বকেয়া',
+    above3k: '≥ ৩ হাজার (₹৩,০০০+)',
+    above5k: '≥ ৫ হাজার (₹৫,০০০+)',
+    above10k: '≥ ১০ হাজার (₹১০,০০০+)',
+    customOsdMarker: 'নির্দিষ্ট পরিমাণ (₹)',
   },
 };
 
