@@ -184,35 +184,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Sync to localStorage
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem(STORAGE_KEY_USER);
+    try {
+      if (currentUser) {
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem(STORAGE_KEY_USER);
+      }
+    } catch (e) {
+      console.warn('localStorage error:', e);
     }
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+    try {
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
   }, [users]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_CONSUMERS, JSON.stringify(consumers));
+    try {
+      localStorage.setItem(STORAGE_KEY_CONSUMERS, JSON.stringify(consumers));
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
   }, [consumers]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(surveyLogs));
+    try {
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(surveyLogs));
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
   }, [surveyLogs]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_LANG, language);
+    try {
+      localStorage.setItem(STORAGE_KEY_LANG, language);
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
   }, [language]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_SYNC, JSON.stringify(syncConfig));
+    try {
+      localStorage.setItem(STORAGE_KEY_SYNC, JSON.stringify(syncConfig));
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
   }, [syncConfig]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_THEME, theme);
+    try {
+      localStorage.setItem(STORAGE_KEY_THEME, theme);
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
   }, [theme]);
 
   const showToast = (msg: string) => {
@@ -287,19 +315,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // 1. User Scoping:
       // If current user is a regular field user, they ONLY see consumers belonging to their agency!
       if (currentUser && currentUser.role === 'user' && currentUser.agency !== 'ALL') {
-        if (c.agency.toUpperCase() !== currentUser.agency.toUpperCase()) {
+        const cAgency = c.agency ? c.agency.toUpperCase() : '';
+        const uAgency = currentUser.agency ? currentUser.agency.toUpperCase() : '';
+        if (cAgency !== uAgency) {
           return false;
         }
       }
 
       // 2. Admin agency dropdown filter
-      if (selectedAgencyFilter !== 'All' && c.agency.toUpperCase() !== selectedAgencyFilter.toUpperCase()) {
-        return false;
+      if (selectedAgencyFilter !== 'All') {
+        const cAgency = c.agency ? c.agency.toUpperCase() : '';
+        if (cAgency !== selectedAgencyFilter.toUpperCase()) {
+          return false;
+        }
       }
 
       // 3. Class filter
-      if (selectedClassFilter !== 'All' && c.class.toUpperCase() !== selectedClassFilter.toUpperCase()) {
-        return false;
+      if (selectedClassFilter !== 'All') {
+        const cClass = c.class ? c.class.toUpperCase() : '';
+        if (cClass !== selectedClassFilter.toUpperCase()) {
+          return false;
+        }
       }
 
       // 4. Status filter
@@ -311,13 +347,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matches =
-          c.id.toLowerCase().includes(q) ||
-          c.name.toLowerCase().includes(q) ||
-          c.address.toLowerCase().includes(q) ||
-          c.mru.toLowerCase().includes(q) ||
-          c.mobileNo.includes(q) ||
-          c.meterNo.toLowerCase().includes(q) ||
-          c.agency.toLowerCase().includes(q);
+          (c.id && c.id.toLowerCase().includes(q)) ||
+          (c.name && c.name.toLowerCase().includes(q)) ||
+          (c.address && c.address.toLowerCase().includes(q)) ||
+          (c.mru && c.mru.toLowerCase().includes(q)) ||
+          (c.mobileNo && String(c.mobileNo).includes(q)) ||
+          (c.meterNo && c.meterNo.toLowerCase().includes(q)) ||
+          (c.agency && c.agency.toLowerCase().includes(q));
         if (!matches) return false;
       }
 

@@ -49,11 +49,13 @@ export const StatsBreakdown: React.FC = () => {
   // Filtered consumers for the top metrics cards
   const statsConsumers = useMemo(() => {
     return consumers.filter((c) => {
-      if (selectedAgencyFilter !== 'All' && c.agency.toUpperCase() !== selectedAgencyFilter.toUpperCase()) {
-        return false;
+      if (selectedAgencyFilter !== 'All') {
+        const ag = c.agency ? c.agency.toUpperCase() : '';
+        if (ag !== selectedAgencyFilter.toUpperCase()) return false;
       }
-      if (selectedClassFilter !== 'All' && c.class.toUpperCase() !== selectedClassFilter.toUpperCase()) {
-        return false;
+      if (selectedClassFilter !== 'All') {
+        const cls = c.class ? c.class.toUpperCase() : '';
+        if (cls !== selectedClassFilter.toUpperCase()) return false;
       }
       return true;
     });
@@ -113,9 +115,13 @@ export const StatsBreakdown: React.FC = () => {
 
   // Cross-agency performance matrix (Screenshot 2 bottom table)
   const agencyMatrix = useMemo(() => {
-    const agencies = Array.from(new Set(consumers.map((c) => c.agency.toUpperCase()))).sort();
+    const agencies = Array.from(
+      new Set(consumers.map((c) => (c.agency ? c.agency.toUpperCase() : 'AC')))
+    ).sort();
     return agencies.map((agency) => {
-      const agencyConsumers = consumers.filter((c) => c.agency.toUpperCase() === agency);
+      const agencyConsumers = consumers.filter(
+        (c) => (c.agency ? c.agency.toUpperCase() : 'AC') === agency
+      );
       const row = {
         agency,
         officeTeamCount: agencyConsumers.filter((c) => c.status === 'office_team').length,

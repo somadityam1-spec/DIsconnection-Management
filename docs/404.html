@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Disconnection & Revenue Recovery Management</title>
+    <script>
+      (function() {
+        // Single Page App GitHub Pages redirect
+        var path = window.location.pathname;
+        var segments = path.split('/').filter(Boolean);
+        var target = '/';
+        if (segments.length > 0) {
+          if (segments[1] === 'docs') {
+            target = '/' + segments[0] + '/docs/';
+          } else {
+            target = '/' + segments[0] + '/';
+          }
+        }
+        window.location.replace(target + window.location.search + window.location.hash);
+      })();
+    </script>
+  </head>
+  <body>
+    <p style="font-family: sans-serif; text-align: center; margin-top: 50px; color: #475569;">
+      Loading Disconnection & Revenue Recovery Portal...
+    </p>
+  </body>
+</html>

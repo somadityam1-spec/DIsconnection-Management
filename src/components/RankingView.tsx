@@ -27,20 +27,20 @@ export const RankingView: React.FC = () => {
     // Filter consumers by selected class
     const classFiltered = selectedClass === 'All'
       ? consumers
-      : consumers.filter((c) => c.class.toUpperCase() === selectedClass.toUpperCase());
+      : consumers.filter((c) => (c.class ? c.class.toUpperCase() : '') === selectedClass.toUpperCase());
 
     // Group by agency
     const agencyGroups: Record<string, typeof classFiltered> = {};
     classFiltered.forEach((c) => {
-      const ag = c.agency.toUpperCase();
+      const ag = c.agency ? c.agency.toUpperCase() : 'AC';
       if (!agencyGroups[ag]) agencyGroups[ag] = [];
       agencyGroups[ag].push(c);
     });
 
     const list = Object.entries(agencyGroups).map(([agency, list]) => {
-      const assignedOsd = list.reduce((sum, c) => sum + c.osd, 0);
+      const assignedOsd = list.reduce((sum, c) => sum + (c.osd || 0), 0);
       const realizedOsd = list.reduce((sum, c) => {
-        if (c.status === 'paid') return sum + (c.amountRealized || c.osd);
+        if (c.status === 'paid') return sum + (c.amountRealized || c.osd || 0);
         return sum;
       }, 0);
 
@@ -57,7 +57,9 @@ export const RankingView: React.FC = () => {
       const passionScore = Math.round(realizationRate * 0.7 + attendanceRate * 0.3);
 
       // Corresponding user if created
-      const matchedUser = users.find((u) => u.agency.toUpperCase() === agency);
+      const matchedUser = users.find(
+        (u) => (u.agency ? u.agency.toUpperCase() : '') === agency
+      );
 
       return {
         agency,

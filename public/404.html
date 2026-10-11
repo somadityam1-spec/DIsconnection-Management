@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Disconnection & Revenue Recovery Management</title>
     <script>
-      // Single Page App GitHub Pages redirect
-      var pathSegments = location.pathname.split('/').filter(Boolean);
-      var repo = pathSegments.length > 0 ? '/' + pathSegments[0] + '/' : '/';
-      location.replace(repo);
+      (function() {
+        // Single Page App GitHub Pages redirect
+        var path = window.location.pathname;
+        var segments = path.split('/').filter(Boolean);
+        var target = '/';
+        if (segments.length > 0) {
+          if (segments[1] === 'docs') {
+            target = '/' + segments[0] + '/docs/';
+          } else {
+            target = '/' + segments[0] + '/';
+          }
+        }
+        window.location.replace(target + window.location.search + window.location.hash);
+      })();
     </script>
   </head>
   <body>

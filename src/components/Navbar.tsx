@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDrawer }) => {
                   <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0 inline" />
                 ) : null}
                 <span className="truncate">
-                  {currentUser ? currentUser.name.split(' ')[0] : 'Harishchandrapur'}
+                  {currentUser?.name ? currentUser.name.split(' ')[0] : 'Harishchandrapur'}
                 </span>
                 {currentUser?.agency && currentUser.agency !== 'ALL' && (
                   <span className={`px-1.5 py-0.2 rounded text-[10px] font-extrabold uppercase ${styles.agencyBadge}`}>
