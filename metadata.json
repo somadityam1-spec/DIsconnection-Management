@@ -1,0 +1,9 @@
+{
+  "name": "Disconnection & Revenue Recovery Management",
+  "description": "Role-governed utility disconnection and OSD recovery field application with Google Sheets sync, bilingual support, and watermarked proof.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
